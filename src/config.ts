@@ -1,0 +1,1 @@
+export const GAS_ENDPOINT = 'https://script.google.com/macros/s/AKfycbzJon2NU4RUh4enNrMhg_H8QUCmboXWwQbVtdtLlcZk4c84daddyglzwLV7rLK2_Zny5g/exec'
