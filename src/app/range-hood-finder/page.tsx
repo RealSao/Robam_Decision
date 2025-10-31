@@ -9,7 +9,7 @@ import Image from 'next/image'
    ========================= */
 type Size = 30 | 36
 type Orientation = '直吸' | '侧吸'
-type Smoke = '很少' | '普通' | '重油烟' | '爆炒'
+type Smoke = '很少' | '普通' | '重油烟/爆炒'
 type Tier = '低配' | '中配' | '高配'
 const ALL_TIERS: Tier[] = ['低配', '中配', '高配']
 
@@ -100,8 +100,7 @@ const PRODUCTS: Product[] = RAW.map((r) => ({ ...r, 档位: deriveTier(r) }))
 const TARGET_CFM: Record<Smoke, number> = {
     '很少': 850,
     '普通': 1000,
-    '重油烟': 1200,
-    '爆炒': 1300,
+    '重油烟/爆炒': 1300,   // 合并后重油烟/爆炒统一按 1300 目标
 }
 
 /* =========================
@@ -111,8 +110,7 @@ type Weights = { wCFM: number; wPress: number; wTier: number; wSpeed: number }
 const SMOKE_WEIGHTS: Record<Smoke, Weights> = {
     '很少': { wCFM: 0.4, wPress: 0.15, wTier: 0.25, wSpeed: 0.2 },
     '普通': { wCFM: 0.5, wPress: 0.2, wTier: 0.2, wSpeed: 0.1 },
-    '重油烟': { wCFM: 0.55, wPress: 0.25, wTier: 0.15, wSpeed: 0.05 },
-    '爆炒': { wCFM: 0.6, wPress: 0.3, wTier: 0.1, wSpeed: 0.0 },
+    '重油烟/爆炒': { wCFM: 0.6, wPress: 0.3, wTier: 0.1, wSpeed: 0.0 }, // 取更严格的“爆炒”权重
 }
 
 const TIER_INDEX: Record<Tier, number> = { 低配: 0, 中配: 1, 高配: 2 }
@@ -243,16 +241,14 @@ export default function Finder() {
                 done: !!ans.smoke,
                 content: (
                     <div className="grid gap-4 sm:grid-cols-2">
-                        {(['很少', '普通', '重油烟', '爆炒'] as Smoke[]).map((s) => (
+                        {(['很少', '普通', '重油烟/爆炒'] as Smoke[]).map((s) => (
                             <button
                                 key={s}
                                 onClick={() => setAns((a) => ({ ...a, smoke: s }))}
                                 className={btnChoiceBig(ans.smoke === s)}
                             >
                                 <div className="text-base">{s}</div>
-                                <div className="text-xs text-zinc-400">
-                                    目标风量：{TARGET_CFM[s]} CFM
-                                </div>
+                                <div className="text-xs text-zinc-400">目标风量：{TARGET_CFM[s]} CFM</div>
                             </button>
                         ))}
                     </div>
@@ -347,6 +343,11 @@ export default function Finder() {
         setTierTab(preferred ?? fallback)
     }, [ans.budget, topByTier])
 
+    const tabOrder: Tier[] = React.useMemo(() => {
+        const pref = ans.budget as Tier | undefined
+        return pref ? [pref, ...ALL_TIERS.filter(t => t !== pref)] : ALL_TIERS
+    }, [ans.budget])
+
     const active = tierTab ? topByTier[tierTab] : undefined
 
     function resetAll() {
@@ -355,16 +356,20 @@ export default function Finder() {
         setView('wizard')
     }
 
-    function tabCls(active: boolean, disabled?: boolean) {
-        return (
-            'rounded-full border px-3 py-1.5 text-xs transition ' +
-            (disabled
-                ? 'opacity-40 cursor-not-allowed border-zinc-800 text-zinc-500'
-                : active
-                    ? 'bg-slate-200 text-black border-slate-300'
-                    : 'border-zinc-700 text-zinc-300 hover:border-zinc-500')
-        )
+    function tabChip(size: 'lg' | 'sm', active: boolean, disabled?: boolean) {
+        const base =
+            (size === 'lg'
+                ? 'px-4 py-2 text-sm rounded-full'
+                : 'px-3 py-1.5 text-xs rounded-full') + ' border transition'
+        const state = disabled
+            ? ' opacity-40 cursor-not-allowed border-zinc-800 text-zinc-500'
+            : active
+                ? ' bg-slate-200 text-black border-slate-300'
+                : ' border-zinc-700 text-zinc-300 hover:border-zinc-500'
+        const extra = size === 'lg' ? ' shadow-sm' : ''
+        return base + state + extra
     }
+
 
     return (
         <>
@@ -462,8 +467,9 @@ export default function Finder() {
                                 目标风量：<b>{targetCFM || '—'} CFM</b>　相似度：<b>{best ? (bestScore * 100).toFixed(0) : '--'}%</b>
                             </p>
 
-                            <div className="mb-4 flex items-center gap-2">
-                                {ALL_TIERS.map(t => {
+                            <div className="mb-4 flex flex-wrap items-center gap-2">
+                                {tabOrder.map((t) => {
+                                    const isPreferred = t === ans.budget
                                     const disabled = !topByTier[t]
                                     return (
                                         <button
@@ -471,9 +477,9 @@ export default function Finder() {
                                             type="button"
                                             disabled={disabled}
                                             onClick={() => !disabled && setTierTab(t)}
-                                            className={tabCls(tierTab === t, disabled)}
+                                            className={tabChip(isPreferred ? 'lg' : 'sm', tierTab === t, disabled)}
                                         >
-                                            {t}{disabled ? '（无）' : ''}
+                                            {t}{disabled ? '（无）' : ''}{isPreferred ? <span className="ml-1 opacity-70 text-[10px]">已选</span> : null}
                                         </button>
                                     )
                                 })}
@@ -493,7 +499,6 @@ export default function Finder() {
                                                 <span className="inline-block rounded-full bg-slate-200 text-black px-3 py-1 text-xs">
                                                     {active.p.档位} · {tierTab === ans.budget ? '首选' : '该档最佳'}
                                                 </span>
-                                                <span className="text-xs text-zinc-400">相似度 {(active.score * 100).toFixed(0)}%</span>
                                             </div>
                                             <p className="mt-1 text-white font-medium">
                                                 {active.p.name} — {active.p.size}" {active.p.形态}
