@@ -14,6 +14,7 @@ type Tier = '低配' | '中配' | '高配'
 const ALL_TIERS: Tier[] = ['低配', '中配', '高配']
 
 type Answers = { size?: Size; style?: Orientation; smoke?: Smoke; budget?: Tier }
+type KV = { key: string; value: string }
 
 type Product = {
     name: string
@@ -26,6 +27,7 @@ type Product = {
     形态: Orientation
     档位: Tier
     卖点?: string[]
+    关键功能?: KV[]
 }
 
 /* =========================
@@ -36,15 +38,6 @@ function resolveImg(url?: string) {
     if (url.startsWith('http') || url.startsWith('/')) return url
     // Map "src/assets/foo.webp" -> "/images/foo.webp" (put files under /public/images)
     return url.replace(/^src\/assets\//, '/images/')
-}
-
-function seg(active: boolean) {
-    return (
-        'rounded-full px-3 py-1 border transition ' +
-        (active
-            ? 'bg-slate-200 text-black border-slate-300'
-            : 'border-zinc-700 text-zinc-300 hover:border-zinc-500')
-    )
 }
 
 function ProductImage({
@@ -70,19 +63,275 @@ function ProductImage({
     )
 }
 
+function KeyFeatures({ items }: { items?: { key: string; value: string }[] }) {
+    if (!items || items.length === 0) return null
+    return (
+        <div className="mt-4">
+            <h4 className="text-sm font-semibold text-zinc-200 mb-2">关键功能</h4>
+            <div className="flex flex-wrap gap-2">
+                {items.map((it, i) => (
+                    <FeatureChip key={i} k={it.key} v={it.value} />
+                ))}
+            </div>
+        </div>
+    )
+}
+
+function FeatureChip({ k, v }: { k: string; v: string }) {
+    const [open, setOpen] = React.useState(false)
+    return (
+        <div className="relative group inline-block">
+            <button
+                type="button"
+                onClick={() => setOpen(o => !o)}
+                className="inline-flex items-center gap-1 rounded-full border border-zinc-700 bg-zinc-900/40 px-2.5 py-1 text-xs text-zinc-200 hover:border-zinc-500"
+                aria-describedby={`feat-${k}`}
+            >
+                <span aria-hidden>✔</span>
+                {k}
+            </button>
+
+            {/* 浮窗：hover 或点击均可显示；移动端点一次展开、再点收起 */}
+            <div
+                id={`feat-${k}`}
+                className={
+                    'pointer-events-none absolute left-1/2 top-full z-50 mt-2 w-72 -translate-x-1/2 ' +
+                    'rounded-xl border border-zinc-700 bg-zinc-900/95 p-3 text-xs text-zinc-200 shadow-2xl ' +
+                    'opacity-0 transition group-hover:opacity-100 group-focus:opacity-100 ' +
+                    (open ? 'opacity-100 pointer-events-auto' : '')
+                }
+                role="tooltip"
+            >
+                {v}
+            </div>
+        </div>
+    )
+}
+
+
 type RawProduct = Omit<Product, '档位'>;
 /* ─────────── 你的产品数据（已补齐形态，并自动推断“档位”） ─────────── */
 const RAW: RawProduct[] = [
-    { name: 'Max3', CFM: 1200, Pressure: 1000, speed_control: 9, size: 30, color: ['Black', 'Gray', 'White'], img_url: 'src/assets/max3.webp', 形态: '侧吸' },
-    { name: 'A6720', CFM: 850, Pressure: 450, speed_control: 3, size: 30, color: ['Black'], img_url: 'src/assets/a6720.webp', 形态: '侧吸' },
-    { name: 'A672', CFM: 1050, Pressure: 450, speed_control: 3, size: 30, color: ['Black'], img_url: 'src/assets/a672.webp', 形态: '侧吸' },
-    { name: 'A678S', CFM: 1200, Pressure: 1000, speed_control: 3, size: 36, color: ['Black'], img_url: 'src/assets/a678s.webp', 形态: '侧吸' },
-    { name: 'A679S', CFM: 1300, Pressure: 1000, speed_control: 4, size: 36, color: ['Black'], img_url: 'src/assets/a679s.webp', 形态: '侧吸' },
-    { name: '52H1S', CFM: 1100, Pressure: 1000, speed_control: 3, size: 30, color: ['Black', 'White'], img_url: 'src/assets/52h1s.webp', 形态: '侧吸' },
-    { name: 'A831', CFM: 1100, Pressure: 800, speed_control: 9, size: 30, color: ['Gray'], img_url: 'src/assets/a831.webp', 形态: '直吸' },
-    { name: 'A832', CFM: 1100, Pressure: 800, speed_control: 9, size: 36, color: ['Black'], img_url: 'src/assets/a832.webp', 形态: '直吸' },
-    { name: '86H1S', CFM: 1300, Pressure: 1000, speed_control: 3, size: 30, color: ['Black'], img_url: 'src/assets/86h1s.webp', 形态: '直吸' },
-    { name: 'A837', CFM: 1200, Pressure: 800, speed_control: 4, size: 36, color: ['Black'], img_url: 'src/assets/a837.webp', 形态: '直吸' },
+    {
+        name: 'Max3', CFM: 1200, Pressure: 1000, speed_control: 9, size: 30, color: ['Black', 'Gray', 'White'], img_url: 'src/assets/max3.webp', 形态: '侧吸', 关键功能: [
+            {
+                key: '体验巅峰吸排',
+                value: '搭载先进 BLDC 无刷电机，提供 1200 CFM 强劲风量，轻松排走油烟与异味，保持厨房空气清新纯净。'
+            },
+            {
+                key: '免拆免洗',
+                value: '专利 A++ 过滤系统高效分离 98% 油污；腔体内壁防粘涂层抑制积垢，真正实现免拆洗，省心更洁净。'
+            },
+            {
+                key: '易清洁',
+                value: '纳米抗污涂层让表面抗油拒水，指纹与油渍一抹即净，让 30 英寸机型日常维护更轻松。'
+            },
+            {
+                key: 'AI 手势控制',
+                value: '挥手即可调节风量，悬停即可开关，无需触碰，精准操控 30 英寸可转换式油烟机。'
+            },
+            {
+                key: '灶吸联动',
+                value: '打造一体化厨房体验。与兼容灶具智能联动，开火即启、自动抽排。'
+            }
+        ]
+    },
+    {
+        name: 'A6720', CFM: 850, Pressure: 450, speed_control: 3, size: 30, color: ['Black'], img_url: 'src/assets/a6720.webp', 形态: '侧吸', 关键功能: [
+            {
+                key: '强劲性能',
+                value: '850 CFM 电机，稳定高效地抽走油烟与油脂。'
+            },
+            {
+                key: '免拆免洗',
+                value: '专利 A++ 过滤系统高效分离 98% 油污；腔体内壁防粘涂层抑制积垢，真正实现免拆洗，省心更洁净。'
+            },
+            {
+                key: '大面积拢烟屏',
+                value: '3.1 平方英尺最大覆盖，满足多炉头同时烹饪。'
+            },
+            {
+                key: '雅致外观',
+                value: '30 英寸黑色壁挂式设计，契合现代厨房。'
+            },
+            {
+                key: '易维护',
+                value: '磁吸式可机洗滤网，玻璃面板一擦即净。'
+            },
+            {
+                key: '易上手',
+                value: '灵敏触控，内置 LED 照明。'
+            }
+        ]
+    },
+    {
+        name: 'A672', CFM: 1050, Pressure: 450, speed_control: 3, size: 30, color: ['Black'], img_url: 'src/assets/a672.webp', 形态: '侧吸', 关键功能: [
+            {
+                key: '强力吸排',
+                value: '提供 1050 CFM 风量与 450 Pa 静压，稳定高效地排走油烟与异味。'
+            },
+            {
+                key: '免拆免洗',
+                value: '专利 A++ 过滤系统高效分离 98% 油污；腔体内壁防粘涂层抑制积垢，真正实现免拆洗，省心更洁净。'
+            },
+            {
+                key: '挥手控制',
+                value: '挥手即可开机，并一键切换至 Turbo 爆炒档。'
+            },
+            {
+                key: '大面积拢烟屏',
+                value: '3.1 平方英尺覆盖，满足多炉头同时烹饪。'
+            }
+        ]
+    },
+    {
+        name: 'A678S', CFM: 1200, Pressure: 1000, speed_control: 3, size: 36, color: ['Black'], img_url: 'src/assets/a678s.webp', 形态: '侧吸', 关键功能: [
+            {
+                key: '免触控操作',
+                value: '通过红外感应实现免触控操作，只需挥手即可开启/关闭风机，真正解放双手。'
+            },
+            {
+                key: '强劲电机',
+                value: '强劲电机配备 Turbo 爆炒模式，尽情煎炸/爆炒，强力控烟，减少油污对厨房的污染与损伤。'
+            },
+            {
+                key: '你所需功能，一机到位',
+                value: '配置可机洗金属网滤网、节能 LED 照明与灵敏触控屏；适配 6″ 管径排风。'
+            }
+        ]
+    },
+    {
+        name: 'A679S', CFM: 1300, Pressure: 1000, speed_control: 4, size: 36, color: ['Black'], img_url: 'src/assets/a679s.webp', 形态: '侧吸', 关键功能: [
+            {
+                key: '体验巅峰吸排',
+                value: '搭载 BLDC 无刷电机，提供 1300 CFM 风量与 1000 Pa 静压，强力高效排走油烟与异味。'
+            },
+            {
+                key: '免拆免洗',
+                value: '专利 A++ 过滤系统高效分离 98% 油污；腔体内壁防粘涂层抑制积垢，真正实现免拆洗，省心更洁净。'
+            },
+            {
+                key: '挥手控制',
+                value: '挥手即可开机，并可通过手势调节风量。'
+            },
+            {
+                key: '大面积拢烟屏',
+                value: '3.9 sq.ft 拢烟覆盖，满足多炉头同时烹饪。'
+            }
+        ]
+    },
+    {
+        name: '52H1S', CFM: 1100, Pressure: 1000, speed_control: 3, size: 30, color: ['Black', 'White'], img_url: 'src/assets/52h1s.webp', 形态: '侧吸', 关键功能: [
+            {
+                key: '体验巅峰吸排',
+                value: '搭载 BLDC 无刷电机，提供 1100 CFM 风量与 1000 Pa 静压，强力高效排走油烟与异味。'
+            },
+            {
+                key: '免拆免洗',
+                value: '专利 A++ 过滤系统高效分离 98% 油污；腔体内壁防粘涂层抑制积垢，真正实现免拆洗，省心更洁净。'
+            },
+            {
+                key: '挥手控制',
+                value: '挥手即可开启油烟机，并可通过手势调节风量。'
+            },
+            {
+                key: '大面积拢烟屏',
+                value: '3.1 sq.ft 最大拢烟覆盖，满足多炉头同时烹饪。'
+            }
+        ]
+    },
+    {
+        name: 'A831', CFM: 1100, Pressure: 800, speed_control: 9, size: 30, color: ['Gray'], img_url: 'src/assets/a831.webp', 形态: '直吸', 关键功能: [
+            {
+                key: '体验巅峰吸排',
+                value: '搭载 BLDC 无刷电机，提供 1100 CFM 风量与 800 Pa 静压，强力高效排走油烟与异味。'
+            },
+            {
+                key: '净烟技术',
+                value: '采用 ROBAM 专利活性炭过滤技术，油脂分离率达 98.1%。'
+            },
+            {
+                key: '9 档调速',
+                value: '滑动 + 触控一体化面板，轻松精准调节风量。'
+            },
+            {
+                key: '纤薄机身',
+                value: '适用于 under-cabinet 柜下与壁挂两种安装方式。'
+            }
+        ]
+    },
+    {
+        name: 'A832', CFM: 1100, Pressure: 800, speed_control: 9, size: 36, color: ['Black'], img_url: 'src/assets/a832.webp', 形态: '直吸', 关键功能: [
+            {
+                key: '体验巅峰吸排',
+                value: '搭载 BLDC 无刷电机，提供 1100 CFM 风量与 800 Pa 静压，强力高效排走油烟与异味。'
+            },
+            {
+                key: '净烟技术',
+                value: '采用 ROBAM 专利活性炭过滤技术，油脂分离率达 98.1%。'
+            },
+            {
+                key: '9 档调速',
+                value: '滑动 + 触控一体化面板，轻松精准调节风量。'
+            },
+            {
+                key: '纤薄机身',
+                value: '适用于 under-cabinet 柜下与壁挂两种安装方式。'
+            }
+        ]
+    },
+    {
+        name: '86H1S', CFM: 1300, Pressure: 1000, speed_control: 3, size: 30, color: ['Black'], img_url: 'src/assets/86h1s.webp', 形态: '直吸', 关键功能: [
+            {
+                key: '体验巅峰吸排',
+                value: '搭载 BLDC 无刷电机，提供 1300 CFM 风量与 1000 Pa 静压，强力高效排走油烟与异味。'
+            },
+            {
+                key: '灶吸联动',
+                value: '油烟机与灶具智能联动，开火即启、随炉火同步。'
+            },
+            {
+                key: 'AI 挥手控制',
+                value: '挥手可调节风量，悬停可开/关机，全程免触控。'
+            },
+            {
+                key: '自动调速',
+                value: '根据风道空气状况实时无缝调节吸力，匹配管道工况。'
+            },
+            {
+                key: '净烟技术',
+                value: '采用 ROBAM 专利活性炭过滤技术，油脂分离率达 98.1%。'
+            },
+            {
+                key: '纤薄机身',
+                value: '支持 under-cabinet 柜下与壁挂两种安装方式。'
+            }
+        ]
+    },
+    {
+        name: 'A837', CFM: 1200, Pressure: 800, speed_control: 4, size: 36, color: ['Black'], img_url: 'src/assets/a837.webp', 形态: '直吸', 关键功能: [
+            {
+                key: '体验巅峰吸排',
+                value: '搭载 BLDC 无刷电机，提供 1200 CFM 风量与 800 Pa 静压，强力排走油烟与异味。'
+            },
+            {
+                key: '免拆免洗',
+                value: '专利 A++ 过滤系统高效分离 98% 油污；腔体内壁防粘涂层抑制积垢，真正实现免拆洗，省心更洁净。'
+            },
+            {
+                key: '深腔拢烟',
+                value: '深腔广角集烟设计，有效汇聚油烟、降低外溢扩散。'
+            },
+            {
+                key: '爆炒增强',
+                value: '15 分钟爆炒增强档，一键应对重油烟，时间到自动退出。'
+            },
+            {
+                key: '定时',
+                value: '支持定时功能，烹饪结束可延时抽排并自动关机。'
+            }
+        ]
+    },
 ]
 
 // 档位：Pressure≥1000 或 speed_control≥9 => 高配；≥800 或 ≥4 => 中配；否则低配
@@ -100,7 +349,7 @@ const PRODUCTS: Product[] = RAW.map((r) => ({ ...r, 档位: deriveTier(r) }))
 const TARGET_CFM: Record<Smoke, number> = {
     '很少': 850,
     '普通': 1000,
-    '重油烟/爆炒': 1300,   // 合并后重油烟/爆炒统一按 1300 目标
+    '重油烟/爆炒': 1200,
 }
 
 /* =========================
@@ -167,6 +416,40 @@ function chip(size: 'lg' | 'sm', variant: 'primary' | 'muted' = 'muted') {
     return `${base} ${color}`
 }
 
+function TitleWithTip({ title, tip }: { title: string; tip?: React.ReactNode }) {
+    const [open, setOpen] = React.useState(false)
+    return (
+        <div className="relative flex items-center gap-2">
+            <h2 className="text-xl font-semibold">{title}</h2>
+            {tip && (
+                <div className="relative group">
+                    <button
+                        type="button"
+                        aria-label="帮助"
+                        onClick={() => setOpen((o) => !o)}
+                        className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-zinc-600 text-[11px] text-zinc-300 hover:text-white"
+                    >
+                        ?
+                    </button>
+
+                    {/* floating card */}
+                    <div
+                        className={
+                            'pointer-events-none absolute left-1/2 top-full z-50 mt-2 w-80 -translate-x-1/2 ' +
+                            'rounded-xl border border-zinc-700 bg-zinc-900/95 p-3 text-xs text-zinc-200 shadow-2xl ' +
+                            'opacity-0 transition group-hover:opacity-100 group-focus-within:opacity-100 ' +
+                            (open ? 'opacity-100 pointer-events-auto' : '')
+                        }
+                    >
+                        {tip}
+                    </div>
+                </div>
+            )}
+        </div>
+    )
+}
+
+
 
 /* =========================
    UI State
@@ -190,12 +473,24 @@ export default function Finder() {
     const steps: {
         key: keyof Answers
         title: string
+        tip?: React.ReactNode
         content: React.ReactNode
         done: boolean
     }[] = [
             {
                 key: 'size',
                 title: '1/4 机位尺寸',
+                tip: (
+                    <div>
+                        <div className="font-medium mb-1">如何选择尺寸？</div>
+                        <ul className="list-disc pl-4 space-y-1">
+                            <li>换新：看旧机身/量宽度，常见为 <b>30″</b> 或 <b>36″</b>。</li>
+                            <li>新装：量吊柜或预留机位宽度；36″ 更适合 36″ 炉灶与更大捕烟面。</li>
+                            <li>请按橱柜实际预留空间决定尺寸</li>
+                            <li>尺寸决定可选型号（会做<b>严格筛选</b>）。</li>
+                        </ul>
+                    </div>
+                ),
                 done: !!ans.size,
                 content: (
                     <div className="grid gap-6">
@@ -217,6 +512,16 @@ export default function Finder() {
             {
                 key: 'style',
                 title: '2/4 安装形态（直吸/侧吸）',
+                tip: (
+                    <div>
+                        <div className="font-medium mb-1">如何选择形态？</div>
+                        <ul className="list-disc pl-4 space-y-1">
+                            <li><b>直吸</b>：外形平直，对上方烟囱罩垂直空间要求更明确；距离灶台的高度，一般在65-75cm间；建议预留空间大时选择直吸</li>
+                            <li><b>侧吸</b>：机身前倾靠近锅沿，不易碰头、爆炒控烟好；底部距离灶台距离更近，一般在35-45cm间；建议预留空间相对小时选择侧吸</li>
+                            <li>此选择同样用于<b>严格筛选</b>可用型号。</li>
+                        </ul>
+                    </div>
+                ),
                 done: !!ans.style,
                 content: (
                     <div className="grid gap-6">
@@ -388,7 +693,7 @@ export default function Finder() {
                 {view === 'wizard' && (
                     <div className="rounded-3xl border border-zinc-800 bg-zinc-950/60 flex flex-col min-h-[22rem]">
                         <div className="border-b border-zinc-800 px-8 py-5 flex items-center justify-between">
-                            <h2 className="text-xl font-semibold">{steps[step].title}</h2>
+                            <TitleWithTip title={steps[step].title} tip={steps[step].tip} />
                             <span className="text-sm text-zinc-400">
                                 {step + 1}/{steps.length}
                             </span>
@@ -499,6 +804,7 @@ export default function Finder() {
                                                 <span className="inline-block rounded-full bg-slate-200 text-black px-3 py-1 text-xs">
                                                     {active.p.档位} · {tierTab === ans.budget ? '首选' : '该档最佳'}
                                                 </span>
+                                                <span className="text-xs text-zinc-400">相似度 {(active.score * 100).toFixed(0)}%</span>
                                             </div>
                                             <p className="mt-1 text-white font-medium">
                                                 {active.p.name} — {active.p.size}" {active.p.形态}
@@ -511,6 +817,8 @@ export default function Finder() {
                                             ) : null}
                                         </div>
                                     </div>
+
+                                    <KeyFeatures items={active.p.关键功能} />
 
                                     {/* 卖点（含规格） */}
                                     <div className="mt-4">
