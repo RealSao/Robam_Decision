@@ -43,10 +43,10 @@ export default function Home() {
       {/* 顶部栏 */}
       <header className="sticky top-0 z-20 border-b border-zinc-800/80 bg-zinc-950/60 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-          <div className="text-sm font-semibold tracking-wide">ROBAM Decision</div>
+          <div className="text-sm font-semibold tracking-wide">智能选型</div>
           <nav className="hidden gap-6 text-sm md:flex">
-            <a href="#features" className="text-zinc-300 hover:text-white">功能亮点</a>
-            <a href="#how" className="text-zinc-300 hover:text-white">测算流程</a>
+            {/*<a href="#features" className="text-zinc-300 hover:text-white">功能亮点</a>
+            <a href="#how" className="text-zinc-300 hover:text-white">测算流程</a>*/}
             {/*<a href="#brands" className="text-zinc-300 hover:text-white">合作品牌</a>*/}
           </nav>
           <Link href="/range-hood-finder" className="rounded-xl bg-slate-200 px-4 py-2 text-sm font-medium text-black hover:bg-white">
@@ -164,7 +164,7 @@ export default function Home() {
           <div>© {new Date().getFullYear()} ROBAM Decision</div>
           <div className="flex items-center gap-6">
             <a href="/range-hood-finder" className="hover:text-white">开始测算</a>
-            <a href="#features" className="hover:text-white">功能亮点</a>
+            {/*<a href="#features" className="hover:text-white">功能亮点</a>*/}
             {/*<a href="#brands" className="hover:text-white">合作品牌</a>*/}
           </div>
         </div>
