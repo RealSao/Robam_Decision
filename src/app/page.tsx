@@ -73,9 +73,6 @@ export default function Home() {
             <Link href="/range-hood-finder" className="rounded-xl bg-gradient-to-r from-slate-200 to-slate-400 px-5 py-2.5 text-sm font-semibold text-black shadow hover:from-white hover:to-white">
               立即开始 →
             </Link>
-            <a href="#features" className="rounded-xl border border-zinc-700 bg-zinc-900/40 px-5 py-2.5 text-sm text-zinc-200 hover:border-zinc-500">
-              了解细节
-            </a>
           </div>
 
           <div className="mt-6 grid grid-cols-3 gap-4 text-xs text-zinc-300">
