@@ -78,35 +78,29 @@ function KeyFeatures({ items }: { items?: { key: string; value: string }[] }) {
 }
 
 function FeatureChip({ k, v }: { k: string; v: string }) {
-    const [open, setOpen] = React.useState(false)
-    return (
-        <div className="relative group inline-block">
-            <button
-                type="button"
-                onClick={() => setOpen(o => !o)}
-                className="inline-flex items-center gap-1 rounded-full border border-zinc-700 bg-zinc-900/40 px-2.5 py-1 text-xs text-zinc-200 hover:border-zinc-500"
-                aria-describedby={`feat-${k}`}
-            >
-                <span aria-hidden>✔</span>
-                {k}
-            </button>
+  const [open, setOpen] = React.useState(false)
 
-            {/* 浮窗：hover 或点击均可显示；移动端点一次展开、再点收起 */}
-            <div
-                id={`feat-${k}`}
-                className={
-                    'pointer-events-none absolute left-1/2 top-full z-50 mt-2 w-72 -translate-x-1/2 ' +
-                    'rounded-xl border border-zinc-700 bg-zinc-900/95 p-3 text-xs text-zinc-200 shadow-2xl ' +
-                    'opacity-0 transition group-hover:opacity-100 group-focus:opacity-100 ' +
-                    (open ? 'opacity-100 pointer-events-auto' : '')
-                }
-                role="tooltip"
-            >
-                {v}
-            </div>
-        </div>
-    )
+  return (
+    <div className="relative group inline-block">
+      <button
+        type="button"
+        aria-expanded={open}
+        onClick={() => setOpen((o) => !o)}     // mobile toggle
+        onMouseLeave={() => setOpen(false)}    // desktop safety
+        className="inline-flex items-center gap-1 rounded-full border border-zinc-700 bg-zinc-900/40 px-2.5 py-1 text-xs text-zinc-200 hover:border-zinc-500"
+      >
+        <span aria-hidden>✔</span>
+        {k}
+      </button>
+
+      {/* Mobile-safe tooltip */}
+      <TooltipCard open={open} onClose={() => setOpen(false)}>
+        {v}
+      </TooltipCard>
+    </div>
+  )
 }
+
 
 
 type RawProduct = Omit<Product, '档位'>;
@@ -417,37 +411,80 @@ function chip(size: 'lg' | 'sm', variant: 'primary' | 'muted' = 'muted') {
 }
 
 function TitleWithTip({ title, tip }: { title: string; tip?: React.ReactNode }) {
-    const [open, setOpen] = React.useState(false)
-    return (
-        <div className="relative flex items-center gap-2">
-            <h2 className="text-xl font-semibold">{title}</h2>
-            {tip && (
-                <div className="relative group">
-                    <button
-                        type="button"
-                        aria-label="帮助"
-                        onClick={() => setOpen((o) => !o)}
-                        className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-zinc-600 text-[11px] text-zinc-300 hover:text-white"
-                    >
-                        ?
-                    </button>
+  const [open, setOpen] = React.useState(false)
 
-                    {/* floating card */}
-                    <div
-                        className={
-                            'pointer-events-none absolute left-1/2 top-full z-50 mt-2 w-80 -translate-x-1/2 ' +
-                            'rounded-xl border border-zinc-700 bg-zinc-900/95 p-3 text-xs text-zinc-200 shadow-2xl ' +
-                            'opacity-0 transition group-hover:opacity-100 group-focus-within:opacity-100 ' +
-                            (open ? 'opacity-100 pointer-events-auto' : '')
-                        }
-                    >
-                        {tip}
-                    </div>
-                </div>
-            )}
+  return (
+    <div className="relative flex items-center gap-2">
+      <h2 className="text-xl font-semibold">{title}</h2>
+
+      {tip && (
+        <div className="relative group">
+          <button
+            type="button"
+            aria-label="帮助"
+            aria-expanded={open}
+            onClick={() => setOpen((o) => !o)} // mobile toggle
+            onMouseLeave={() => setOpen(false)} // desktop hover out safety
+            className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-zinc-600 text-[11px] text-zinc-300 hover:text-white"
+          >
+            ?
+          </button>
+
+          {/* Mobile-safe tooltip */}
+          <TooltipCard open={open} onClose={() => setOpen(false)}>
+            {tip}
+          </TooltipCard>
         </div>
-    )
+      )}
+    </div>
+  )
 }
+
+
+function TooltipCard({
+  open,
+  onClose,
+  children,
+}: {
+  open: boolean
+  onClose?: () => void
+  children: React.ReactNode
+}) {
+  return (
+    <>
+      {/* Desktop: anchored popover */}
+      <div
+        className={
+          'hidden sm:block pointer-events-none absolute left-1/2 top-full z-50 mt-2 w-80 -translate-x-1/2 ' +
+          'rounded-xl border border-zinc-700 bg-zinc-900/95 p-3 text-xs text-zinc-200 shadow-2xl ' +
+          'opacity-0 transition group-hover:opacity-100 group-focus-within:opacity-100 ' +
+          (open ? 'opacity-100 pointer-events-auto' : '')
+        }
+      >
+        <div className="max-h-[60vh] overflow-auto">{children}</div>
+      </div>
+
+      {/* Mobile: bottom sheet, full safe width */}
+      <div className={'sm:hidden ' + (open ? 'pointer-events-auto' : 'pointer-events-none')}>
+        {/* backdrop */}
+        <div
+          className={'fixed inset-0 z-[60] transition ' + (open ? 'opacity-100 bg-black/40' : 'opacity-0')}
+          onClick={onClose}
+        />
+        <div
+          className={
+            'fixed z-[61] inset-x-4 bottom-4 rounded-xl border border-zinc-700 bg-zinc-900/95 p-4 ' +
+            'text-xs text-zinc-200 shadow-2xl max-w-[calc(100vw-2rem)] ' +
+            (open ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2')
+          }
+        >
+          <div className="max-h-[50vh] overflow-auto">{children}</div>
+        </div>
+      </div>
+    </>
+  )
+}
+
 
 
 
