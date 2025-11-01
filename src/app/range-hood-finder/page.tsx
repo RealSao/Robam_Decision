@@ -78,29 +78,72 @@ function KeyFeatures({ items }: { items?: { key: string; value: string }[] }) {
 }
 
 function FeatureChip({ k, v }: { k: string; v: string }) {
-  const [open, setOpen] = React.useState(false)
+    const [open, setOpen] = React.useState(false)
 
-  return (
-    <div className="relative group inline-block">
-      <button
-        type="button"
-        aria-expanded={open}
-        onClick={() => setOpen((o) => !o)}     // mobile toggle
-        onMouseLeave={() => setOpen(false)}    // desktop safety
-        className="inline-flex items-center gap-1 rounded-full border border-zinc-700 bg-zinc-900/40 px-2.5 py-1 text-xs text-zinc-200 hover:border-zinc-500"
-      >
-        <span aria-hidden>✔</span>
-        {k}
-      </button>
+    return (
+        <div className="relative group inline-block">
+            <button
+                type="button"
+                aria-expanded={open}
+                onClick={() => setOpen((o) => !o)}     // mobile toggle
+                onMouseLeave={() => setOpen(false)}    // desktop safety
+                className="inline-flex items-center gap-1 rounded-full border border-zinc-700 bg-zinc-900/40 px-2.5 py-1 text-xs text-zinc-200 hover:border-zinc-500"
+            >
+                <span aria-hidden>✔</span>
+                {k}
+            </button>
 
-      {/* Mobile-safe tooltip */}
-      <TooltipCard open={open} onClose={() => setOpen(false)}>
-        {v}
-      </TooltipCard>
-    </div>
-  )
+            {/* Mobile-safe tooltip */}
+            <TooltipCard open={open} onClose={() => setOpen(false)}>
+                {v}
+            </TooltipCard>
+        </div>
+    )
 }
 
+function ImageChoiceCard({
+    img, alt, caption, buttonLabel, selected, onClick,
+}: {
+    img: string
+    alt: string
+    caption?: string
+    buttonLabel: string
+    selected: boolean
+    onClick: () => void
+}) {
+    return (
+        <div className={
+            'rounded-3xl border bg-zinc-900/40 overflow-hidden ' +
+            (selected ? 'border-sky-400 ring-2 ring-sky-400/30' : 'border-zinc-700/60')
+        }>
+            <div className="relative aspect-[4/3] bg-white">
+                <Image
+                    src={img}
+                    alt={alt}
+                    fill
+                    sizes="(max-width:640px) 100vw, 50vw"
+                    className="object-contain p-6"
+                />
+            </div>
+
+            {caption ? (
+                <div className="px-4 pt-2 text-center text-xs text-zinc-500">{caption}</div>
+            ) : null}
+
+            <div className="px-4 pb-5 pt-3 flex justify-center">
+                {/* use your existing button style helper if you have it */}
+                <button onClick={onClick} className={btnChoiceBig?.(selected) ?? (
+                    'rounded-2xl px-6 py-3 text-base ' +
+                    (selected
+                        ? 'bg-white text-black'
+                        : 'bg-zinc-800 text-zinc-200 hover:bg-zinc-700')
+                )}>
+                    {buttonLabel}
+                </button>
+            </div>
+        </div>
+    )
+}
 
 
 type RawProduct = Omit<Product, '档位'>;
@@ -411,78 +454,78 @@ function chip(size: 'lg' | 'sm', variant: 'primary' | 'muted' = 'muted') {
 }
 
 function TitleWithTip({ title, tip }: { title: string; tip?: React.ReactNode }) {
-  const [open, setOpen] = React.useState(false)
+    const [open, setOpen] = React.useState(false)
 
-  return (
-    <div className="relative flex items-center gap-2">
-      <h2 className="text-xl font-semibold">{title}</h2>
+    return (
+        <div className="relative flex items-center gap-2">
+            <h2 className="text-xl font-semibold">{title}</h2>
 
-      {tip && (
-        <div className="relative group">
-          <button
-            type="button"
-            aria-label="帮助"
-            aria-expanded={open}
-            onClick={() => setOpen((o) => !o)} // mobile toggle
-            onMouseLeave={() => setOpen(false)} // desktop hover out safety
-            className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-zinc-600 text-[11px] text-zinc-300 hover:text-white"
-          >
-            ?
-          </button>
+            {tip && (
+                <div className="relative group">
+                    <button
+                        type="button"
+                        aria-label="帮助"
+                        aria-expanded={open}
+                        onClick={() => setOpen((o) => !o)} // mobile toggle
+                        onMouseLeave={() => setOpen(false)} // desktop hover out safety
+                        className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-zinc-600 text-[11px] text-zinc-300 hover:text-white"
+                    >
+                        ?
+                    </button>
 
-          {/* Mobile-safe tooltip */}
-          <TooltipCard open={open} onClose={() => setOpen(false)}>
-            {tip}
-          </TooltipCard>
+                    {/* Mobile-safe tooltip */}
+                    <TooltipCard open={open} onClose={() => setOpen(false)}>
+                        {tip}
+                    </TooltipCard>
+                </div>
+            )}
         </div>
-      )}
-    </div>
-  )
+    )
 }
 
 
 function TooltipCard({
-  open,
-  onClose,
-  children,
+    open,
+    onClose,
+    children,
 }: {
-  open: boolean
-  onClose?: () => void
-  children: React.ReactNode
+    open: boolean
+    onClose?: () => void
+    children: React.ReactNode
 }) {
-  return (
-    <>
-      {/* Desktop: anchored popover */}
-      <div
-        className={
-          'hidden sm:block pointer-events-none absolute left-1/2 top-full z-50 mt-2 w-80 -translate-x-1/2 ' +
-          'rounded-xl border border-zinc-700 bg-zinc-900/95 p-3 text-xs text-zinc-200 shadow-2xl ' +
-          'opacity-0 transition group-hover:opacity-100 group-focus-within:opacity-100 ' +
-          (open ? 'opacity-100 pointer-events-auto' : '')
-        }
-      >
-        <div className="max-h-[60vh] overflow-auto">{children}</div>
-      </div>
+    return (
+        <>
+            {/* Desktop: anchored popover */}
+            <div
+                className={
+                    'hidden sm:block pointer-events-none absolute left-1/2 top-full z-50 mt-2 w-80 -translate-x-1/2 ' +
+                    'rounded-xl border border-zinc-700 bg-zinc-900/95 p-3 text-xs text-zinc-200 shadow-2xl ' +
+                    'opacity-0 transition group-hover:opacity-100 group-focus-within:opacity-100 ' +
+                    (open ? 'opacity-100 pointer-events-auto' : '')
+                }
+            >
+                <div className="max-h-[60vh] overflow-auto">{children}</div>
+            </div>
 
-      {/* Mobile: bottom sheet, full safe width */}
-      <div className={'sm:hidden ' + (open ? 'pointer-events-auto' : 'pointer-events-none')}>
-        {/* backdrop */}
-        <div
-          className={'fixed inset-0 z-[60] transition ' + (open ? 'opacity-100 bg-black/40' : 'opacity-0')}
-          onClick={onClose}
-        />
-        <div
-          className={
-            'fixed z-[61] inset-x-4 bottom-4 rounded-xl border border-zinc-700 bg-zinc-900/95 p-4 ' +
-            'text-xs text-zinc-200 shadow-2xl max-w-[calc(100vw-2rem)] ' +
-            (open ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2')
-          }
-        >
-          <div className="max-h-[50vh] overflow-auto">{children}</div>
-        </div>
-      </div>
-    </>
-  )
+            {/* Mobile: bottom sheet, full safe width */}
+            <div className={'sm:hidden ' + (open ? 'pointer-events-auto' : 'pointer-events-none')}>
+                {/* backdrop */}
+                <div
+                    className={'fixed inset-0 z-[60] transition ' + (open ? 'opacity-100 bg-black/40' : 'opacity-0')}
+                    onClick={onClose}
+                />
+                <div
+                    className={
+                        'fixed z-[61] inset-x-4 bottom-4 rounded-xl border border-zinc-700 bg-zinc-900/95 p-4 ' +
+                        'text-xs text-zinc-200 shadow-2xl max-w-[calc(100vw-2rem)] ' +
+                        (open ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2')
+                    }
+                >
+                    <div className="max-h-[50vh] overflow-auto">{children}</div>
+                </div>
+            </div>
+        </>
+    )
 }
 
 
@@ -530,19 +573,21 @@ export default function Finder() {
                 ),
                 done: !!ans.size,
                 content: (
-                    <div className="grid gap-6">
-                        <StepImages labels={['30″ 示意', '36″ 示意']} srcs={["/images/30inches.png", "/images/36inches.png"]} />
-                        <div className="flex flex-wrap gap-4">
-                            {[30, 36].map((s) => (
-                                <button
-                                    key={s}
-                                    onClick={() => setAns((a) => ({ ...a, size: s as Size }))}
-                                    className={btnChoiceBig(ans.size === s)}
-                                >
-                                    {s}"
-                                </button>
-                            ))}
-                        </div>
+                    <div className="grid gap-6 sm:grid-cols-2">
+                        <ImageChoiceCard
+                            img="/images/30inches.png"
+                            alt='30"'
+                            buttonLabel='30"'
+                            selected={ans.size === 30}
+                            onClick={() => setAns(a => ({ ...a, size: 30 as Size }))}
+                        />
+                        <ImageChoiceCard
+                            img="/images/36inches.png"
+                            alt='36"'
+                            buttonLabel='36"'
+                            selected={ans.size === 36}
+                            onClick={() => setAns(a => ({ ...a, size: 36 as Size }))}
+                        />
                     </div>
                 ),
             },
@@ -561,19 +606,23 @@ export default function Finder() {
                 ),
                 done: !!ans.style,
                 content: (
-                    <div className="grid gap-6">
-                        <StepImages labels={['直吸 示意', '侧吸 示意']} srcs={["/images/a831.webp", "/images/52h1s.webp"]} />
-                        <div className="flex flex-wrap gap-4">
-                            {(['直吸', '侧吸'] as Orientation[]).map((s) => (
-                                <button
-                                    key={s}
-                                    onClick={() => setAns((a) => ({ ...a, style: s }))}
-                                    className={btnChoiceBig(ans.style === s)}
-                                >
-                                    {s}
-                                </button>
-                            ))}
-                        </div>
+                    <div className="grid gap-6 sm:grid-cols-2">
+                        <ImageChoiceCard
+                            img="/images/a831.webp"
+                            alt="直吸（T 型壁挂）"
+                            caption="直吸：外形平直，常见安装高度"
+                            buttonLabel="直吸"
+                            selected={ans.style === '直吸'}
+                            onClick={() => setAns(a => ({ ...a, style: '直吸' as Orientation }))}
+                        />
+                        <ImageChoiceCard
+                            img="/images/52h1s.webp"
+                            alt="侧吸（倾斜式）"
+                            caption="侧吸：靠近锅沿，爆炒控烟好″"
+                            buttonLabel="侧吸"
+                            selected={ans.style === '侧吸'}
+                            onClick={() => setAns(a => ({ ...a, style: '侧吸' as Orientation }))}
+                        />
                     </div>
                 ),
             },
@@ -601,16 +650,19 @@ export default function Finder() {
                 title: '4/4 预算档位',
                 done: !!ans.budget,
                 content: (
-                    <div className="flex flex-wrap gap-4">
-                        {(['低配', '中配', '高配'] as Tier[]).map((b) => (
-                            <button
-                                key={b}
-                                onClick={() => setAns((a) => ({ ...a, budget: b }))}
-                                className={btnChoiceBig(ans.budget === b)}
-                            >
-                                {b}
-                            </button>
-                        ))}
+                    <div className="mt-6 min-h-[220px] grid place-content-center">
+                        <div className="flex w-full flex-col items-center gap-4
+                  sm:flex-row sm:justify-center sm:gap-6">
+                            {(['低配', '中配', '高配'] as Tier[]).map((t) => (
+                                <button
+                                    key={t}
+                                    onClick={() => setAns(a => ({ ...a, budget: t }))}
+                                    className={btnChoiceBig(ans.budget === t) + ' w-full max-w-[260px]'}
+                                >
+                                    {t}
+                                </button>
+                            ))}
+                        </div>
                     </div>
                 ),
             },
