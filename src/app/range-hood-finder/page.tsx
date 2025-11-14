@@ -222,22 +222,6 @@ const RAW: RawProduct[] = [
         ]
     },
     {
-        name: 'A678S', CFM: 1200, Pressure: 1000, speed_control: 3, size: 36, color: ['Black'], img_url: 'src/assets/a678s.webp', 形态: '侧吸', 关键功能: [
-            {
-                key: '免触控操作',
-                value: '通过红外感应实现免触控操作，只需挥手即可开启/关闭风机，真正解放双手。'
-            },
-            {
-                key: '强劲电机',
-                value: '强劲电机配备 Turbo 爆炒模式，尽情煎炸/爆炒，强力控烟，减少油污对厨房的污染与损伤。'
-            },
-            {
-                key: '你所需功能，一机到位',
-                value: '配置可机洗金属网滤网、节能 LED 照明与灵敏触控屏；适配 6″ 管径排风。'
-            }
-        ]
-    },
-    {
         name: 'A679S', CFM: 1300, Pressure: 1000, speed_control: 4, size: 36, color: ['Black'], img_url: 'src/assets/a679s.webp', 形态: '侧吸', 关键功能: [
             {
                 key: '体验巅峰吸排',
